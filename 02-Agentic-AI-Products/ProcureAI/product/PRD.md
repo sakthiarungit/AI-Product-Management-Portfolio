@@ -95,11 +95,55 @@ Missing or ambiguous information shall trigger clarification before the requisit
 - AC-006: Structured output is validated before downstream API execution.
 - AC-007: No purchase requisition is created without appropriate confirmation and authorization.
 
-## 7. Remaining Requirements
+## 7. Functional Requirement FR-002 — Intelligent Material Catalog Search
+
+**Priority:** Must Have
+
+**User Story:** As an employee, I want ProcureAI to identify matching materials from the approved enterprise catalog so that I can select the correct product without knowing its material number.
+
+### Functional Description
+
+ProcureAI shall search an authoritative enterprise material catalog using the user's natural-language product description.
+
+The system shall return matching active materials with their material numbers, descriptions, categories, units of measure, and relevant specifications.
+
+When multiple materials are plausible matches, ProcureAI shall request clarification or present alternatives rather than making an unsupported selection.
+
+### Acceptance Criteria
+
+- AC-002-01: The system accepts natural-language product descriptions.
+- AC-002-02: Catalog results originate from the configured catalog data source.
+- AC-002-03: Results include material number, description, status, category, and unit of measure.
+- AC-002-04: Inactive or restricted materials are excluded from selectable results according to applicable rules.
+- AC-002-05: Ambiguous requests trigger clarification or a shortlist of alternatives.
+- AC-002-06: The system never invents a material ID or material specification.
+- AC-002-07: The user confirms the selected material before requisition submission.
+- AC-002-08: No-match results are handled gracefully and provide a next action.
+
+### Example Test Scenarios
+
+| Scenario | Expected result |
+|---|---|
+| Exact material description | Matching active material returned |
+| General description | Relevant candidates returned |
+| Ambiguous specification | Clarification requested |
+| Inactive material | Material cannot be selected |
+| Unknown product | No-match message and next action |
+| Multiple matching materials | Alternatives presented for selection |
+
+### Governance Requirements
+
+Catalog data shall be treated as authoritative for material identity and attributes.
+
+The AI model shall not bypass material eligibility rules or fabricate catalog data.
+
+Catalog-search interactions shall be logged with sufficient context to support troubleshooting and evaluation.
+
+## 8. Remaining Requirements
 
 The following capabilities will be detailed in subsequent revisions:
 
-- FR-002: Material and Catalog Search
+
 - FR-003: Supplier Eligibility and Comparison
 - FR-004: Budget Validation
 - FR-005: Procurement Policy Enforcement
