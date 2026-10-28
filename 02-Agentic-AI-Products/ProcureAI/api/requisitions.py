@@ -3,6 +3,8 @@ import hashlib
 import json
 import os
 import uuid
+from functools import wraps
+from threading import Lock
 
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
@@ -17,6 +19,38 @@ from pydantic import BaseModel, Field
 configure_database()
 
 router = APIRouter(prefix="/api/v1", tags=["Requisitions"])
+
+# Serialize demo PR submissions within this SINGLE Python API process.
+# The database's conditional budget UPDATE remains authoritative.
+# IMPORTANT: This process-local lock does NOT coordinate multiple API workers,
+# deployed instances, or other database writers; use database-backed locking
+# / retries for a multi-instance production deployment.
+_demo_submission_lock = Lock()
+
+
+def serialize_demo_submissions(func):
+    @wraps(func)  # Preserve the FastAPI endpoint's request signature.
+    def wrapped(*args, **kwargs):
+        with _demo_submission_lock:
+            return func(*args, **kwargs)
+    return wrapped
+
+
+def safe_rollback(connection):
+    """A rollback failure must not replace the original exception."""
+    try:
+        connection.rollback()
+    except Exception as exc:
+        print("[REQUISITION ROLLBACK ERROR]", type(exc).__name__)
+
+
+def safe_close(connection):
+    """A close failure must not replace an HTTP response or exception."""
+    try:
+        connection.close()
+    except Exception as exc:
+        print("[REQUISITION CLOSE ERROR]", type(exc).__name__)
+
 
 
 class RequisitionRequest(BaseModel):
@@ -70,6 +104,7 @@ def get_connection():
 # --------------------------------------------------
 
 @router.post("/requisitions", status_code=201)
+@serialize_demo_submissions
 def create_requisition(request: RequisitionRequest):
 
     # This feature must be explicitly enabled.
@@ -501,13 +536,13 @@ def create_requisition(request: RequisitionRequest):
         }
 
     except HTTPException:
-        if transaction_started and connection:
-            connection.rollback()
+        if transaction_started and connection is not None:
+            safe_rollback(connection)
         raise
 
     except Exception as error:
-        if transaction_started and connection:
-            connection.rollback()
+        if transaction_started and connection is not None:
+            safe_rollback(connection)
 
         # Do not expose database errors or credentials.
         print(
@@ -525,5 +560,5 @@ def create_requisition(request: RequisitionRequest):
         )
 
     finally:
-        if connection:
-            connection.close()
+        if connection is not None:
+            safe_close(connection)
