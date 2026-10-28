@@ -6,21 +6,15 @@ import uuid
 
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
-from pathlib import Path
 
 import libsql
 
-from dotenv import load_dotenv
+from api.db_config import configure_database
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 
-# --------------------------------------------------
-# 1. Configuration
-# --------------------------------------------------
-
-project_root = Path(__file__).resolve().parent.parent
-load_dotenv(project_root / ".env", override=True)
+configure_database()
 
 router = APIRouter(prefix="/api/v1", tags=["Requisitions"])
 

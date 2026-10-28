@@ -4,12 +4,11 @@ import logging
 import os
 import uuid
 
-from pathlib import Path
 from typing import Literal
 
 import libsql
 
-from dotenv import load_dotenv
+from api.db_config import configure_database
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
@@ -18,10 +17,10 @@ from pydantic import BaseModel, Field
 # 1. Configuration
 # ==================================================
 
-project_root = Path(__file__).resolve().parent.parent
-load_dotenv(project_root / ".env", override=True)
 
 logger = logging.getLogger("procureai.approvals")
+
+configure_database()
 
 router = APIRouter(
     prefix="/api/v1/approvals",

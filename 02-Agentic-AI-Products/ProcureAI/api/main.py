@@ -1,17 +1,17 @@
 
 import os
 import logging
-from pathlib import Path
 
 import libsql
-from dotenv import load_dotenv
+from api.db_config import configure_database
+
+# Load and verify the selected environment BEFORE importing routers.
+APP_ENV = configure_database()
+
 from api.requisitions import router as requisitions_router
 from api.approvals import router as approvals_router
 from fastapi import FastAPI, Query, HTTPException
 
-# Load environment configuration
-project_root = Path(__file__).resolve().parent.parent
-load_dotenv(project_root / ".env", override=True)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("procureai.catalog")
@@ -34,7 +34,7 @@ PRODUCT_SYNONYMS = {
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    return {"status": "ok", "environment": APP_ENV}
 
 
 def escape_like(value: str) -> str:

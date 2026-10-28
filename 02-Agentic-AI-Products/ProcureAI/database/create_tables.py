@@ -3,27 +3,23 @@ import os
 import libsql
 
 from pathlib import Path
-from dotenv import load_dotenv
 
 
 # ==================================================
-# 1. Load Turso Database Configuration
+# 1. Explicit test-database selection (fail closed)
 # ==================================================
 
-project_root = Path(__file__).resolve().parent.parent
+import sys
+from pathlib import Path
 
-load_dotenv(
-    project_root / ".env",
-    override=True
-)
+# Allows running: python database/create_tables.py --test
+from db_target import test_credentials
 
-database_url = os.getenv("TURSO_DATABASE_URL")
-auth_token = os.getenv("TURSO_AUTH_TOKEN")
+if sys.argv[1:] != ["--test"]:
+    raise SystemExit("Refusing to connect. Run: python database/create_tables.py --test")
 
-if not database_url or not auth_token:
-    raise ValueError(
-        "Missing TURSO_DATABASE_URL or TURSO_AUTH_TOKEN"
-    )
+database_url, auth_token = test_credentials()
+print("Verified database target: procureai-test")
 
 
 # ==================================================
