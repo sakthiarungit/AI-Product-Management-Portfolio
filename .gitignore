@@ -231,3 +231,6 @@ __marimo__/
 
 # Local application logs
 logs/
+
+
+.env.test
