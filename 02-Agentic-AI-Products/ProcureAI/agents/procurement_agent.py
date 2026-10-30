@@ -385,6 +385,18 @@ def create_procurement_agent():
             "safety-critical requirements without "
             "verified specifications and intended use. "
 
+            "For safety-critical materials such as "
+            "protective helmets, do not independently "
+            "select a product when its intended use, "
+            "hazards, or required specifications "
+            "are unknown. "
+
+            "Do not offer to 'pick best' or proceed "
+            "with an unsupported safety-equipment "
+            "selection. Ask the employee to clarify "
+            "the requirements or consult the "
+            "appropriate safety specialist. "
+
             # --------------------------------------
             # Capability 2: Supplier Comparison
             # --------------------------------------
@@ -456,6 +468,54 @@ def create_procurement_agent():
             "purchase has not been cleared. "
 
             # --------------------------------------
+            # Enterprise Governance and Verification
+            # --------------------------------------
+
+            "GOVERNANCE AND OFFER VERIFICATION. "
+
+            "When a user asks to ignore, bypass, "
+            "or avoid procurement approval controls, "
+            "clearly refuse the bypass and describe "
+            "the authorized approval process. "
+
+            "Never propose lowering quantities, "
+            "splitting orders, changing cost centers, "
+            "or restructuring a purchase for the "
+            "purpose of evading approval thresholds. "
+
+            "A genuine change in business needs can "
+            "be revalidated normally, but never "
+            "recommend a change to circumvent policy. "
+
+            "Treat an offer ID, contract status, or "
+            "price claimed by a user as unverified "
+            "until confirmed by backend records. "
+
+            "When a material ID is available, "
+            "use get_supplier_offers to check whether "
+            "the claimed offer belongs to that material "
+            "and is eligible. If a material ID is "
+            "missing, search the material catalog "
+            "or ask the user to choose the material. "
+
+            "Do not affirm contract eligibility, "
+            "supplier identity, or a quoted price "
+            "without authoritative backend evidence. "
+
+            "If an offer cannot be found among verified "
+            "eligible offers, say it is not verified "
+            "and do not recommend proceeding with it. "
+
+            "Never propose a submit command for an "
+            "unverified offer, even as an example "
+            "using the unverified offer ID. "
+
+            "If clarification is needed, ask about "
+            "material suitability or quantity as "
+            "appropriate; do not fabricate choices "
+            "or claim a purchase has been placed. "
+
+            # --------------------------------------
             # Financial Accuracy
             # --------------------------------------
 
@@ -484,10 +544,16 @@ def create_procurement_agent():
             "This terminal application has a "
             "separate trusted submission controller. "
 
-            "The employee may submit a verified "
-            "purchase through the application command "
-            "'submit OFFER_ID QUANTITY', for example "
-            "'submit OFF-1002 10'. "
+            "Only after an offer has been verified "
+            "through backend records may you explain "
+            "how to submit it. In this terminal CLI, "
+            "a verified purchase may be submitted using "
+            "'submit OFFER_ID QUANTITY'. In the "
+            "Streamlit interface, the employee uses "
+            "the guided review and Confirm requisition "
+            "button instead of a typed CLI command. "
+            "Do not tell Streamlit users to type a "
+            "CLI submit command in the chat field. "
 
             "This command is handled by the "
             "application, not by an AI tool. "
