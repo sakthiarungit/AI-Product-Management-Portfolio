@@ -1,75 +1,133 @@
-# ProcureAI — Enterprise Agentic AI Procurement Assistant
+# ProcureAI — Governed Agentic AI Procurement Assistant
 
-> Portfolio prototype | Synthetic data | Local development | Work in progress
+**Principal AI Product Manager portfolio case study | V1 local proof of concept | Synthetic data**
 
-ProcureAI demonstrates how an AI assistant can move from natural-language procurement requests to **governed, auditable enterprise actions**. An LLM helps users discover materials and compare suppliers; deterministic backend services enforce contract eligibility, budgets, approval routing, and transaction integrity.
+ProcureAI explores a practical enterprise AI product question: **How can an AI assistant help employees prepare purchase requisitions while keeping authorization, financial controls, and transaction execution in trusted systems?**
 
-## Current capabilities (verified in local testing)
+The prototype supports material discovery, contracted supplier comparison, budget and approval-policy validation, and a controlled purchase-requisition workflow. It pairs an Azure-hosted GPT-5-mini agent with deterministic FastAPI services and a Turso/libSQL database containing synthetic procurement data.
 
-- Natural-language material discovery via GPT-5-mini and Microsoft Agent Framework tools.
-- Active-material catalog and supplier-offer retrieval, filtered by supplier and contract eligibility.
-- Read-only purchase validation against budget and approval policy.
-- Backend requisition creation with explicit confirmation, idempotency, budget commitment and audit entries.
-- Backend approval/rejection workflows; rejection releases committed budget.
-- Local CLI submission workflow with explicit `YES` confirmation.
-- Local Streamlit Stage 2 workspace for material search, supplier selection, quantity and purchase validation; conversational assistant also available.
+> **Scope:** Local educational/portfolio demonstration. ProcureAI is **not** a production procurement system and does **not** connect to live SAP, Ariba, Maximo, suppliers, or payment services.
 
-**Not yet implemented in the Streamlit interface:** chat-embedded transactional selections, requisition confirmation, and manager approval actions. **Not production-ready:** real end-user authentication, deployment hardening, integration with an actual ERP, and comprehensive automated testing.
+## Product opportunity
 
-## Architecture at a glance
+Employees may need to navigate several procurement steps to find the right material, compare eligible suppliers, understand budgets, and obtain approvals. ProcureAI tests a conversational and guided purchasing experience without delegating financial authorization to a language model.
+
+**Target users:** Employees/requesters, procurement specialists, purchasing managers/approvers, and budget owners. The business benefits—such as time saved and improved catalog accuracy—remain **hypotheses** until measured against a comparable baseline.
+
+## V1 capabilities demonstrated
+
+- **Material discovery:** Find active catalog items and present alternatives when the requirement is ambiguous.
+- **Supplier comparison:** Retrieve eligible contracted supplier offers with price, currency, and delivery lead time.
+- **Read-only AI tools:** The agent can call `search_catalog`, `get_supplier_offers`, and `validate_procurement_request`. These agent tools cannot create or approve a requisition.
+- **Authoritative validation:** FastAPI verifies supplier and contract eligibility, amount, available budget, and approval policy.
+- **Guided Streamlit purchasing:** Select material and offer, specify quantity, review the validated purchase, and explicitly confirm submission.
+- **Trusted submission:** Backend requisition creation uses idempotency and transactional budget controls, with audit records.
+- **Manager decision:** A separate **local demonstration** view supports approval or rejection through the backend. This view uses configured synthetic identities; it is **not** authenticated enterprise role-based access control.
+- **CLI alternative:** A trusted terminal controller supports `submit OFFER_ID QUANTITY` followed by explicit `YES` confirmation.
+
+**Important UX distinction:** The Streamlit purchasing journey uses a guided workflow, including some deterministic intent handling; not every chat utterance is routed to the LLM. The standalone agent/CLI demonstrates tool-using conversational behavior.
+
+## Architecture and governance
 
 ```mermaid
 flowchart TD
-    U[Employee / Streamlit or CLI] --> AI[GPT-5-mini / Agent Framework]
-    U --> UI[Streamlit structured purchasing workspace]
-    AI --> T[Read-only discovery and validation tools]
-    T --> API[FastAPI procurement API]
-    UI --> API
-    CLI[CLI confirmation controller] --> API
-    API --> DB[(Turso libSQL — synthetic catalog and transactions)]
-    API --> POL[Deterministic authorization, policy, budget and audit controls]
-    POL --> DB
+    User[Employee] --> UI[Streamlit guided request and confirmation]
+    User --> CLI[Optional CLI]
+    UI --> API[Trusted FastAPI services]
+    CLI --> Controller[Trusted confirmation controller]
+    Controller --> API
+    User --> Agent[GPT-5-mini via Microsoft Agent Framework]
+    Agent --> Tools[Read-only catalog, supplier and validation tools]
+    Tools --> API
+    API --> Rules[Eligibility, policy, budget and approval controls]
+    Rules --> DB[(Turso/libSQL synthetic data)]
+    API --> DB
+    Manager[Demo manager decision] --> API
 ```
 
-The application is designed to keep **model-generated language separate from authorized changes to business state**. Backend API checks—not the assistant's prose—determine whether a requisition can be written.
+**Design principle:** The model interprets requests and retrieves verified information; **the backend—not model-generated text—controls financial state, approval decisions, and auditing**. Validation is not submission, and employee confirmation does not substitute for manager authorization.
 
-## Repository layout
+For deeper implementation details, see [Architecture](docs/Architecture.md), [AI Governance](docs/AI-Governance.md), and [Agent Workflow](docs/Agent-Workflow.md).
+
+## Verified end-to-end demonstration
+
+A local development demonstration completed the following scenario:
+
+| Step | Verified behavior |
+|---|---|
+| Request | 40 industrial safety helmets |
+| Material | `MAT-1001` — Industrial Safety Helmet, Type I |
+| Selected offer | `OFF-1002` — IndustrialSource |
+| Unit price | $23.50 |
+| Total | **$940.00** |
+| Validation | `APPROVAL_REQUIRED` under the demo's $500 approval threshold |
+| Submission | Requisition created with **40 units**, status `PENDING_APPROVAL` |
+| Manager action | Synthetic assigned manager approved the request |
+| Final database state | **40 units, $940.00, `APPROVED`** |
+
+A UI quantity-state defect was discovered during testing: an early version validated 40 units but submitted one. The defect was corrected, and the final requisition quantity and amount were verified directly in the database. This is a key product lesson: **the transaction submitted must match exactly what the user reviewed and confirmed**.
+
+The displayed available budget is dynamic and depends on prior synthetic demonstration transactions; it should not be hard-coded into screenshots or documentation.
+
+## Testing and evaluation evidence
+
+**Backend regression:** The isolated test environment completed **20/20 automated tests** in the final reported run. Coverage included read-only APIs, transaction integrity, negative governance/authorization cases, concurrency, and rollback/recovery. The tested concurrency safeguard applies to the **local single-process** implementation, not a distributed production deployment.
+
+**AI agent behavioral evaluation:** Six live-agent scenarios were exercised using a repeatable evaluation runner. Following manual review, five scenarios were assessed as acceptable for their specific tested objectives and one—verification of an invented supplier offer—was classified **safe with limitations**. The runner's textual heuristics can produce false positives and are **not** a statistical accuracy or security score.
+
+See [Evaluation Summary](evaluations/Evaluation-Summary.md), [Evaluation Dataset](evaluations/eval_cases.json), [Evaluation Runner](evaluations/run_agent_evals.py), and [Test Scenarios](docs/Test-Scenarios.md).
+
+## Project structure
 
 ```text
 ProcureAI/
-├── agents/                 # AI agent and CLI requisition controller
-├── api/                    # FastAPI, requisitions, approvals
-├── database/               # Schema and synthetic seed scripts
-├── product/                # Product vision, discovery and PRD
-├── docs/                   # Architecture, workflows, governance, decisions, tests, log
-├── app.py                  # Streamlit Stage 2 UI
+├── agents/                 # AI agent and trusted CLI submission controller
+├── api/                    # FastAPI catalog, requisition and approval services
+├── database/               # Synthetic database schema and seed assets
+├── docs/                   # Architecture, governance, workflows and testing
+├── evaluations/            # Behavioral test cases, runner and reviewed summary
+├── product/                # Vision, discovery, PRD and product case study
+├── app.py                  # Streamlit conversation-first guided demo
+├── SETUP.md                # Local setup and demonstration instructions
 ├── README.md
-├── requirements.txt
-└── .env.example            # Template only; NEVER commit real .env
+└── requirements.txt       # Dependency snapshot; see note below
 ```
 
-## Local setup (illustrative; verify package versions against requirements.txt)
+## Run locally
 
-1. Create and activate a Python virtual environment, then install `requirements.txt`.
-2. Copy `.env.example` to `.env` and set local development configuration. **Never commit `.env`.**
-3. Authenticate to Azure using the Azure CLI (`az login`) if your credential configuration requires it.
-4. Initialize a **development-only** Turso database using the existing schema/seed scripts. **Reset scripts destroy seedable data; never run on production.**
-5. Launch FastAPI: `python -m uvicorn api.main:app --reload --host 127.0.0.1 --port 8000`.
-6. Launch Streamlit in another terminal: `python -m streamlit run app.py`.
-7. Use Streamlit at `http://localhost:8501` and FastAPI docs at `http://127.0.0.1:8000/docs`.
+For the detailed environment configuration and precautions, read **[SETUP.md](SETUP.md)** first. You will need Python, the repository's dependencies, an Azure model deployment with suitable credentials, and a separate **synthetic** Turso development database.
 
-## Demo scenario
+From the ProcureAI directory, with the virtual environment activated:
 
-1. Search `helmet` and select **MAT-1001**, Industrial Safety Helmet, Type I.
-2. Compare **OFF-1002** (IndustrialSource, $23.50, seven days) and **OFF-1001** (SafeGuard Supplies, $25.00, five days).
-3. Set quantity **10**; validate a **$235.00** line amount against budget and policy (subject to current database balances).
-4. Changing quantity invalidates prior validation in the Stage 2 UI.
-5. Separately, the CLI or backend API can submit a requisition after explicit confirmation. Requisition creation is **not yet wired into Streamlit**.
+**Terminal 1 — development API:**
 
-## Evidence and roadmap
+```powershell
+$env:PROCUREAI_ENV = "development"
+python -m uvicorn api.main:app --host 127.0.0.1 --port 8000
+```
 
-See [Test Scenarios](docs/Test-Scenarios.md) for manual test evidence and [Development Log](docs/Development-Log.md) for milestones. See [Agent Workflow](docs/Agent-Workflow.md) for current-vs-target behavior and [AI Governance](docs/AI-Governance.md) for limitations.
+**Terminal 2 — Streamlit:**
 
-## Important disclaimer
+```powershell
+$env:PROCUREAI_ENV = "development"
+$env:CATALOG_API_BASE_URL = "http://127.0.0.1:8000"
+python -m streamlit run app.py
+```
 
-ProcureAI uses **synthetic materials, employees, suppliers, policies and budgets**. It is a product/engineering portfolio demonstration, not a production purchasing service or a live connection to SAP/Ariba/Maximo.
+Open `http://localhost:8501`. The API documentation is at `http://127.0.0.1:8000/docs`.
+
+**Test isolation:** Transactional tests must use the separate **test** Turso database and the API on port **8001**, after verifying `http://127.0.0.1:8001/health` reports `environment: test`. Follow [SETUP.md](SETUP.md) before running `python -m pytest tests/ -v`.
+
+**Dependency note:** The current `requirements.txt` is a partial environment snapshot; it does not yet fully enumerate all Streamlit, pytest, Azure identity, and agent-framework requirements. Reconcile it with the working environment before treating this as a reproducible clean-machine installation. Do not commit `.env`, `.env.test`, tokens, or credentials.
+
+## Product decisions and roadmap
+
+The MVP prioritizes **trusted data access, human control, accurate transaction state, and clear auditability** over maximum agent autonomy. It intentionally uses one agent and a guided action layer rather than exposing purchase-write tools to the model.
+
+Future considerations—not included in V1—include real enterprise SSO/authorization, production monitoring, multi-instance concurrency, broader AI red-teaming, live ERP integration, quantitative UX baselines, multi-line procurement requests, and comparative evaluation of more autonomous approaches.
+
+**Product portfolio:** [Product Case Study](product/ProcureAI-Product-Case-Study.md) · [Product Vision](product/Product-Vision.md) · [Product Discovery](product/Product-Discovery.md) · [PRD](product/PRD.md)
+
+## Responsible-use statement
+
+All materials, employees, supplier contracts, policies, budgets, and requisitions in the demonstration are **synthetic**. Example price and approval thresholds are illustrative. The prototype is bound to local development use and must not be exposed as an internet-facing purchasing or manager-approval application. Its manual evaluations and automated tests do not establish production-grade security, compliance, or business outcomes.
