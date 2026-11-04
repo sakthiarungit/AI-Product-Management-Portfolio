@@ -51,23 +51,21 @@ For deeper implementation details, see [Architecture](docs/Architecture.md), [AI
 
 ## Verified end-to-end demonstration
 
-A local development demonstration completed the following scenario:
+A local **synthetic five-laptop purchasing scenario** demonstrated the complete guided requisition and manager-approval lifecycle. AI-assisted supplier comparison informed the decision, but an employee selected the faster contracted offer; the agent did not submit or approve the purchase.
 
-| Step | Verified behavior |
+| Decision point | Verified demonstration |
 |---|---|
-| Request | 40 industrial safety helmets |
-| Material | `MAT-1001` — Industrial Safety Helmet, Type I |
-| Selected offer | `OFF-1002` — IndustrialSource |
-| Unit price | $23.50 |
-| Total | **$940.00** |
-| Validation | `APPROVAL_REQUIRED` under the demo's $500 approval threshold |
-| Submission | Requisition created with **40 units**, status `PENDING_APPROVAL` |
-| Manager action | Synthetic assigned manager approved the request |
-| Final database state | **40 units, $940.00, `APPROVED`** |
+| Material and quantity | `MAT-2001` — Standard Business Laptop; **5 units** |
+| Lower-cost alternative | OfficeTech Solutions, `OFF-2001` — **$950/unit; $4,750 total; 7-day lead time** |
+| Selected faster offer | BusinessIT Direct, `OFF-2002` — **$995/unit; $4,975 total; 3-day lead time** |
+| Business trade-off | Four days faster for $225 more across five laptops |
+| Confirmed requisition | `PR-D3EE5C6A828049EF`, **$4,975**, initially pending manager approval |
+| Separate manager approval | `APR-74F110FE0BC948A6`, synthetic manager decision recorded |
+| Final verified database state | **5 laptops, $4,975, `APPROVED`** |
 
-A UI quantity-state defect was discovered during testing: an early version validated 40 units but submitted one. The defect was corrected, and the final requisition quantity and amount were verified directly in the database. This is a key product lesson: **the transaction submitted must match exactly what the user reviewed and confirmed**.
+The AI agent has only read-only catalog, offer, and validation tools. **The guided application and trusted FastAPI backend—not the AI agent—control confirmation, requisition creation, budget commitments, and approval.** No live supplier purchase, purchase order, or ERP transaction occurred.
 
-The displayed available budget is dynamic and depends on prior synthetic demonstration transactions; it should not be hard-coded into screenshots or documentation.
+The earlier 40-safety-helmet example remains historical testing evidence. The laptop example is the current portfolio demonstration; available budgets can change with synthetic transactions.
 
 ## Testing and evaluation evidence
 
@@ -75,7 +73,9 @@ The displayed available budget is dynamic and depends on prior synthetic demonst
 
 **AI agent behavioral evaluation:** Six live-agent scenarios were exercised using a repeatable evaluation runner. Following manual review, five scenarios were assessed as acceptable for their specific tested objectives and one—verification of an invented supplier offer—was classified **safe with limitations**. The runner's textual heuristics can produce false positives and are **not** a statistical accuracy or security score.
 
-See [Evaluation Summary](evaluations/Evaluation-Summary.md), [Evaluation Dataset](evaluations/eval_cases.json), [Evaluation Runner](evaluations/run_agent_evals.py), and [Test Scenarios](docs/Test-Scenarios.md).
+The saved automated evaluation report classified six scenarios as **4 PASS, 1 REVIEW, and 1 SAFE_WITH_LIMITATIONS**. Human review separately assessed **five acceptable and one safe but incomplete**. The automated REVIEW outcome was a heuristic classification requiring human inspection, not a confirmed failed purchase.
+
+See [Evaluation Summary](evaluations/Evaluation-Summary.md), [Saved Evaluation Result](evaluations/results/agent_eval_20261030T165432Z.json), [Evaluation Dataset](evaluations/eval_cases.json), [Evaluation Runner](evaluations/run_agent_evals.py), and [Test Scenarios](docs/Test-Scenarios.md).
 
 ## Project structure
 

@@ -20,6 +20,8 @@ The evaluation established that the agent could use its read-only tools to retri
 
 These findings are limited to the six evaluated scenarios. They do not establish statistical accuracy, comprehensive security assurance, or production readiness.
 
+**Saved automated result:** The October 30 JSON report classified six scenarios as **4 PASS, 1 REVIEW, and 1 SAFE_WITH_LIMITATIONS**. Human review separately found **five acceptable behaviors and one safe but incomplete supplier-offer verification**. These are different assessment levels.
+
 ## 2. Evaluation Results
 
 | ID | Scenario | Human-reviewed outcome |
@@ -89,17 +91,18 @@ The human-reviewed conclusions in this document are separate from the original a
 
 ProcureAI also completed 20 automated backend regression tests covering catalog operations, transaction integrity, governance restrictions, identity scenarios, concurrency, and rollback/recovery.
 
-A separate end-to-end Streamlit demonstration verified:
+A **later five-laptop Streamlit demonstration** separately verified:
 
-- A request for 40 industrial safety helmets
-- A contracted offer priced at $23.50 per unit
-- A total requisition value of $940
-- Manager approval required for purchases exceeding $500
-- Requisition creation with `PENDING_APPROVAL` status
-- Subsequent manager approval
-- Final stored requisition status of `APPROVED`
+- Standard Business Laptop (`MAT-2001`), quantity **5**
+- OfficeTech Solutions (`OFF-2001`): **$4,750 total / 7 days**; BusinessIT Direct (`OFF-2002`): **$4,975 total / 3 days**
+- Human selection of the faster BusinessIT Direct offer
+- Confirmed requisition `PR-D3EE5C6A828049EF`, initially pending approval
+- Synthetic manager approval `APR-74F110FE0BC948A6`
+- Final stored requisition **5 units, $4,975, `APPROVED`**
 
-These backend and workflow results should not be confused with AI behavioral evaluation results.
+An **earlier 40-helmet demonstration** also verified a $940 requisition and manager approval under the demo's $500 threshold. The six AI evaluation prompts used helmet-related scenarios; the five-laptop result is separate end-to-end workflow evidence.
+
+These backend and workflow results should not be confused with AI behavioral evaluation results. See the [saved automated six-scenario report](results/agent_eval_20261030T165432Z.json).
 
 ## 6. Remaining Risks and Next Steps
 

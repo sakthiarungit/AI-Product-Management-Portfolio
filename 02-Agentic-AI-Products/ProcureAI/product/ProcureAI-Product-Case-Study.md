@@ -1,6 +1,6 @@
 # ProcureAI — Governed Agentic AI for Enterprise Procurement
 
-**Principal AI Product Manager portfolio case study | V1 local proof of concept | October 2026**
+**Principal AI Product Manager portfolio case study | V1 local proof of concept | Updated November 2026**
 
 > **Project boundary:** ProcureAI uses synthetic materials, suppliers, employees, contracts, budgets, and policies. It is a local portfolio prototype—not a production purchasing platform and not connected to SAP, Ariba, or Maximo. Product value hypotheses are not yet validated with real users or a conventional-workflow baseline.
 
@@ -8,9 +8,9 @@
 
 ProcureAI explores a practical enterprise Agentic AI question: **Can a natural-language purchasing experience simplify requisition preparation while retaining deterministic financial controls, explicit employee confirmation, and accountable managerial approval?**
 
-I developed a single-agent procurement proof of concept backed by an enterprise-style service layer. In the demonstrated scenario, an employee requested 40 industrial safety helmets, selected material `MAT-1001` and supplier offer `OFF-1002`, received a $940 budget/policy validation, confirmed the requisition, and obtained a separate manager approval. The final database record confirmed **40 units, $940.00, and `APPROVED` status** after the manager action.
+I developed a single-agent procurement proof of concept backed by an enterprise-style service layer. In the current portfolio demonstration, an employee requested **five standard business laptops** and compared two contracted offers. The lower-cost offer totaled **$4,750 with a 7-day lead time**; the selected faster offer totaled **$4,975 with a 3-day lead time**. After employee confirmation, trusted backend services created the requisition, and a synthetic manager approved it. The final database record confirmed **5 units, $4,975, and `APPROVED` status**.
 
-The prototype also passed **20 automated backend regression tests** in an isolated test environment and **six focused manual agent behavior checks**. These are prototype verification results, not production reliability statistics or measured business ROI.
+The prototype also passed **20 automated backend regression tests** in an isolated test environment and **six focused AI behavioral evaluation scenarios** (five acceptable after human review, one safe but incomplete). These are prototype verification results, not production reliability statistics or measured business ROI.
 
 **Principal product decision:** Keep AI tool access read-only; let trusted application/backend services own transaction confirmation, procurement rules, budget reservation, approval decisions, and audit records.
 
@@ -45,11 +45,11 @@ To evaluate these responsibly, compare the prototype with a conventional form-ba
 
 | Metric | Proposed method | Current evidence |
 |---|---|---|
-| Request completion rate | Valid completed scenarios / attempted valid scenarios | One demonstrated end-to-end purchase; no representative rate |
+| Request completion rate | Valid completed scenarios / attempted valid scenarios | One current five-laptop end-to-end demo; no representative rate |
 | Catalog matching accuracy | Correct eligible matches / labeled evaluation requests | Focused manual checks only |
 | Requisition preparation time | Median elapsed time, excluding manager wait | Not measured |
 | Policy adherence | Prohibited actions blocked / tested prohibited actions | Selected backend negative tests and manual agent probes |
-| Transaction correctness | Matching confirmed vs stored material, quantity, price, status | Verified for the 40-unit scenario |
+| Transaction correctness | Matching confirmed vs stored material, quantity, price, status | Verified for the five-laptop scenario (earlier helmet scenario also verified) |
 | Model cost and latency | Tokens, spend and end-to-end timing per successful request | Not yet measured systematically |
 | User confidence / usability | Task observation and feedback from target personas | Not yet collected |
 
@@ -83,20 +83,22 @@ These boundaries preserve a small, credible MVP rather than equating an extensiv
 
 ## 6. Core user journey — verified example
 
-**Scenario:** A maintenance requester needs **40 industrial safety helmets**.
+**Scenario:** An employee needs **five standard business laptops** for new team members.
 
 | Step | User or system activity | Evidence / outcome |
 |---|---|---|
-| 1 | Requester enters the purchasing need | Streamlit conversation captures request |
-| 2 | Requester selects a material | `MAT-1001` — Industrial Safety Helmet, Type I |
-| 3 | System retrieves contracted offers | `OFF-1002` IndustrialSource: **$23.50 / unit, 7 days**; `OFF-1001` SafeGuard Supplies: **$25.00 / unit, 5 days** |
-| 4 | Requester selects offer and quantity | `OFF-1002`, 40 units |
-| 5 | Backend validates financial/policy rules | **$940.00**; policy threshold **greater than $500**; `APPROVAL_REQUIRED` |
-| 6 | Requester explicitly confirms | Requisition `PR-338AEFBBB88B46FA` created as `PENDING_APPROVAL` |
-| 7 | Manager acts through local demo | Approval `APR-6E193D0B20154B92` assigned to synthetic manager `EMP-1002`; manager approved |
-| 8 | Final record is checked | Requisition stored as **40 units, $940.00, `APPROVED`** |
+| 1 | Employee describes the need | Five standard business laptops requested in the local demo |
+| 2 | System identifies the material | `MAT-2001` — Standard Business Laptop |
+| 3 | Offers are compared | OfficeTech Solutions `OFF-2001`: **$950/unit, $4,750 total, 7 days**; BusinessIT Direct `OFF-2002`: **$995/unit, $4,975 total, 3 days** |
+| 4 | Employee chooses a business trade-off | BusinessIT Direct for delivery **4 days sooner** at a **$225** total premium |
+| 5 | Trusted backend validates the request | Offer eligibility, budget and policy checks; no autonomous AI write |
+| 6 | Employee explicitly confirms | Requisition `PR-D3EE5C6A828049EF` created for **5 units, $4,975**, initially pending approval |
+| 7 | Synthetic manager records a decision | Approval `APR-74F110FE0BC948A6` recorded as `APPROVED` |
+| 8 | Final record is checked | Requisition verified as **5 units, $4,975, `APPROVED`** |
 
-These IDs are synthetic demonstration records. Validation budget values can change as test requisitions are created; do not present a past available-balance figure as a current invariant.
+**Product takeaway:** The cheapest option was not automatically the best business choice. AI-assisted comparison surfaced the price/delivery trade-off, while the human chose an offer and trusted backend services controlled execution and approval.
+
+This is a **synthetic local demonstration**, not a live supplier purchase or ERP transaction. The earlier 40-helmet example remains historical testing evidence.
 
 ## 7. Solution and architecture decisions
 
@@ -120,7 +122,7 @@ These IDs are synthetic demonstration records. Validation budget values can chan
 
 ## 8. Governance, reliability, and a critical defect discovered
 
-The MVP deliberately distinguishes **user intent**, **explicit transaction confirmation**, and **manager authorization**. The $940 scenario crosses the configured $500 approval threshold, so confirmation creates a pending requisition; only the separate manager decision changes it to approved.
+The MVP deliberately distinguishes **user intent**, **explicit transaction confirmation**, and **manager authorization**. In the five-laptop demonstration, the $4,975 requisition was created pending approval; only the separate synthetic manager decision changed it to approved. The earlier $940 helmet demonstration exercised a seeded $500 approval threshold; policy values are illustrative and configuration-dependent.
 
 The project surfaced a meaningful UI defect: a review showed **40 units and $940**, while an earlier Streamlit submission sent **1 unit and $23.50**. The backend correctly applied the threshold to the amount it received, but the user's reviewed transaction and submitted transaction did not match. The application was corrected to preserve a reviewed purchase snapshot and verify the resulting transaction. The final scenario then created **40 units in `PENDING_APPROVAL`** and reached `APPROVED` only after the manager action.
 
@@ -131,16 +133,16 @@ Other controls exercised in development include idempotent requests, transaction
 ## 9. Verification evidence and limitations
 
 - **20/20 automated backend tests passed** in the isolated test environment on the final reported regression run. Categories covered read-only catalog behavior, transaction integrity, negative governance cases, identity restrictions, concurrency, and recovery.
-- **6/6 focused manual agent scenarios passed as observed**, including material discovery, supplier comparison, validation, an attempted policy bypass, an invented offer, and an ambiguous request. These are not a statistically representative accuracy benchmark.
-- **End-to-end local demo verified**: 40 helmets → $940 validation → pending approval → manager approval → stored `APPROVED` requisition.
+- **Six focused AI scenarios were evaluated: automated results 4 PASS, 1 REVIEW, 1 SAFE_WITH_LIMITATIONS; human review found five acceptable and one safe but incomplete**, including material discovery, supplier comparison, validation, an attempted policy bypass, an invented offer, and an ambiguous request. These are not a statistically representative accuracy benchmark.
+- **End-to-end local laptop demo verified**: five standard laptops → selected $4,975 faster offer → validation and confirmed requisition → manager approval → stored `APPROVED` requisition. Earlier helmet results remain historical evidence.
 
-**Not yet evidenced:** A repeatable model-evaluation benchmark, production security, a user study, real system integration, workload/latency SLAs, and verified business ROI.
+**Not yet evidenced:** A statistically representative model-accuracy benchmark, production security, a user study, real system integration, workload/latency SLAs, and verified business ROI. A repeatable six-scenario evaluation runner and saved report do exist, but their scope remains limited.
 
 ## 10. Roadmap and product decision gates
 
 **V1 — Complete for local PoC:** Guided procurement, narrow read-only agent tools, deterministic validation, confirmed simulated write, manager decision, audit and backend regression evidence.
 
-**Next — Evaluation and portfolio packaging:** Repeatable agent evaluation dataset and run logs, README/setup/dependency cleanup, screenshots, and measured usability/task timing if feasible.
+**Next — Evaluation and portfolio packaging:** Expand the existing evaluation dataset and improve automated grading; reconcile dependencies, add screenshots, and measure usability/task timing if feasible. A saved report and human-reviewed summary already exist.
 
 **Potential pilot — Only after evidence:** Real identity and authorization, enterprise integration contracts, API access controls, distributed reliability, monitoring, formal security/governance review, and a pilot with measurable outcomes.
 
@@ -167,5 +169,7 @@ Other controls exercised in development include idempotent requests, transaction
 - [AI Governance](../docs/AI-Governance.md)
 - [Test Scenarios](../docs/Test-Scenarios.md)
 - [Development Log](../docs/Development-Log.md)
+- [AI Evaluation Summary](../evaluations/Evaluation-Summary.md)
+- [Saved Evaluation Result](../evaluations/results/agent_eval_20261030T165432Z.json)
 
 **Portfolio positioning:** ProcureAI is a governed enterprise Agentic AI **proof of concept**, intended to demonstrate product judgment and applied architecture through real prototype evidence—not to claim autonomous procurement operations at production scale.
