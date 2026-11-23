@@ -117,10 +117,15 @@ but still recommended `general_maintenance`. Adding
 `no_maintenance_needed` gave it a way to recommend stopping the workflow.
 The same scenario passed on retest with no trade or follow-up question.
 
-The clear sink-leak regression test with the revised instructions is
-pending. FastAPI integration testing is also pending, including verifying
-that the spill path creates no vendor invitation or assignment and
-closes only after the tenant confirms.
+**Clear sink-leak regression: Passed.** In the Microsoft Foundry
+playground, the revised instructions still returned `plumbing` and
+`ready_for_policy_check`, with `follow_up_question` set to `null`.
+The agent cited the tenant's report that water pools under the sink
+when the tap runs.
+
+FastAPI integration testing is pending. The spill integration test
+will verify that the application creates no vendor invitation or
+assignment and closes the request only after the tenant confirms.
 
 ## Evaluation and learning goals
 
@@ -142,7 +147,7 @@ tenants verify as resolved.
 
 ## Next milestone
 
-Rerun the clear sink-leak case with the revised instructions. Then
-connect the triage agent to FastAPI, validate its structured response,
-and test that a confirmed spill skips dispatch and waits for the
-tenant's closure confirmation.
+Call the saved Foundry triage agent from Python and verify that it
+returns the four triage fields. Then expose the call through
+`POST /triage` in FastAPI and validate the response before the
+application uses it.
